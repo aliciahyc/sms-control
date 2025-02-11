@@ -26,9 +26,9 @@ namespace SmsControl.Services
 
                 var currentTime = DateTime.Now;
                 // Get phone numbers that haven't had activity within the last 30 days
-                var expiredNumbers = _smsService.GetActivePhoneNumbers()
-                                        .Where(e => (currentTime - e.Value) >= _inactiveThreshold)
-                                        .Select(e => e.Key)
+                var expiredNumbers = _smsService.GetNumberRecords()
+                                        .Where(pair => (currentTime - pair.Value.Last()) >= _inactiveThreshold)
+                                        .Select(pair => pair.Key)
                                         .ToList();
                 _smsService.RemoveExpiredNumbers(expiredNumbers);   
             }

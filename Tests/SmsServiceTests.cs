@@ -1,3 +1,4 @@
+using System.Globalization;
 using SmsControl.Services;
 //using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -81,6 +82,36 @@ namespace SmsControl.Tests
             bool result = _smsService.CanSendMessage("23456", out string message);
             Assert.True(result);
             Assert.Equal("SMS message allowed", message);
+        }
+
+        [Fact]
+        public void MsgProcessedRate() 
+        {
+            var from = DateTime.Now;
+
+            _smsService.CanSendMessage("12345", out _);
+            _smsService.CanSendMessage("12345", out _);
+            _smsService.CanSendMessage("23456", out _);
+            _smsService.CanSendMessage("23456", out _);
+            _smsService.CanSendMessage("67890", out _);
+            Thread.Sleep(30000);
+            
+            // Get Process rate for all phone numbers and all time
+            bool result = _smsService.MsgProcessedRate("", "", "", out _, out double count1);
+            Assert.True(result);
+            Assert.True(count1 > 0);
+
+            // Get Process rate for a phone numbers and all time
+            result = _smsService.MsgProcessedRate("12345", "12", "34", out _, out double count2); // invalid from and to Dates
+            Assert.True(result);
+            Assert.True(count2 > 0);
+
+            // Get Process rate for a phone numbers and all time
+            var to = DateTime.Now;
+            result = _smsService.MsgProcessedRate("12345", from.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture), 
+                    to.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture), out _, out double count3);
+            Assert.True(result);
+            Assert.True(count3 > 0);
         }
 
         public void Dispose() 

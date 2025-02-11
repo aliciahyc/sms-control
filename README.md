@@ -20,10 +20,14 @@ Get source code from Github Repo: https://github.com/aliciahuang22/SmsControl
 1. Nevigate to project root directory: SmsControl
 2. Type command: dotnet run
 
-## Testing application
+## Testing application on local
 Send request
-curl -X POST "https://localhost:5000/api/sms/allow-send" -H "Content-Type: application/json" -d '{"phoneNumber": "1234567890", "message": "Hello!"}'
-curl -X POST "https://localhost:5000/api/sms/reset" -H "Content-Type: application/json"
+curl -X POST "http://localhost:5000/api/sms/allow-send" -H "Content-Type: application/json" -d '{"phoneNumber": "1234567890"}'
+curl -X POST "http://localhost:5000/api/sms/reset" -H "Content-Type: application/json"
+
+curl -X GET "http://localhost:5000/api/sms/get-rate" \
+-H "Content-Type: application/json" \
+-d '{"phoneNumber": "1234567890", "from": "2025-02-11 15:45:30", "to": "2025-02-11 16:22:30"}'
  
 ## Running Unit Tests
 1. Nevigate to project root directory: SmsControl

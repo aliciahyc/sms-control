@@ -36,5 +36,16 @@ namespace SmsControl.Controllers
 
             return BadRequest(new SmsResponse { Success = false, Message = message });
         }
+
+        [HttpGet("get-rate")]
+        public ActionResult<SmsResponse> GetThroughput([FromBody] SmsRequest request)
+        {
+            if (_smsService.MsgProcessedRate(request.PhoneNumber, request.FromDate, request.ToDate, out string message, out double count))
+            {
+                return Ok(new SmsResponse { Success = true, Message = message, Count = count });
+            }
+
+            return BadRequest(new SmsResponse { Success = false, Message = message, Count = count });
+        }
     }
 }
