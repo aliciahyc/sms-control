@@ -26,6 +26,11 @@ namespace SmsControl.Services
 
         public bool CanSendMessage(string phoneNumber, out string message)
         {
+            if (string.IsNullOrWhiteSpace(phoneNumber) || !phoneNumber.All(char.IsDigit)) 
+            {
+                message = "Invalid phone number";
+                return false;
+            }
             lock (_sendMessageLock)
             {
                 _numberUsage.TryGetValue(phoneNumber, out int currentNumberUsage);
@@ -64,6 +69,7 @@ namespace SmsControl.Services
             lock (_resetLimitLock)
             {
                 _numberUsage.Clear();
+                _activePhoneNumbers.Clear();
             }
 
             message = "SMS limit reset.";

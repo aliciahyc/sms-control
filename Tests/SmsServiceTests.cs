@@ -54,6 +54,20 @@ namespace SmsControl.Tests
         }
 
         [Fact]
+        public void InvalidPhoneNumber() 
+        {
+            bool result = _smsService.CanSendMessage("", out string message1);
+            Assert.False(result);
+            Assert.Equal("Invalid phone number", message1);
+            result = _smsService.CanSendMessage("  ", out string message2);
+            Assert.False(result);
+            Assert.Equal("Invalid phone number", message2);
+            result = _smsService.CanSendMessage("123abc", out string message3);
+            Assert.False(result);
+            Assert.Equal("Invalid phone number", message3);
+        }
+
+        [Fact]
         public void RemoveExpiredNumbers() 
         {
             _smsService.CanSendMessage("12345", out _);
