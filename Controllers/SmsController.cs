@@ -37,8 +37,8 @@ namespace SmsControl.Controllers
             return BadRequest(new SmsResponse { Success = false, Message = message });
         }
 
-        [HttpGet("get-rate")]
-        public ActionResult<SmsResponse> GetThroughput([FromBody] SmsRequest request)
+        [HttpPost("get-rate")]
+        public ActionResult<SmsResponse> MsgProcessedRate([FromBody] SmsRequest request)
         {
             if (_smsService.MsgProcessedRate(request.PhoneNumber, request.FromDate, request.ToDate, out string message, out double count))
             {

@@ -74,7 +74,7 @@ namespace SmsControl.Services
             {
                 message = "No message to be processed";
                 count = 0;
-                return false;
+                return true;
             }
 
             bool validPhoneNumber = !string.IsNullOrWhiteSpace(phoneNumber);
@@ -87,12 +87,16 @@ namespace SmsControl.Services
 
             List<DateTime> records = [];
             if (validPhoneNumber) {
-                records = _numberRecords.FirstOrDefault(pair => pair.Key == phoneNumber).Value;   
+                records = _numberRecords.FirstOrDefault(pair => pair.Key == phoneNumber).Value ?? [];   
             } else 
             {
                 records = [.. _numberRecords.Values.SelectMany(records => records)]; // records for all the phone number
             }
-
+            if (records.Count <= 0) {
+                count = 0;
+                message = "No message matches the criteria";
+                return true;
+            }
 
             bool validTimeRange = !string.IsNullOrWhiteSpace(from) && !string.IsNullOrWhiteSpace(to);
 
@@ -109,7 +113,7 @@ namespace SmsControl.Services
             if (totalMessages <= 0) {
                 count = 0;
                 message = "No message matches the criteria";
-                return false;
+                return true;
             }
 
             var seconds = (records.Max() - records.Min()).TotalSeconds; // max <= to, min >= from
