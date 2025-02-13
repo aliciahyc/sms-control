@@ -9,15 +9,15 @@ Repo for the SmsControl application.
 2. Run command to make sure SDK is installed and configured properly: dotnet --version
 
 ## Download source code
-Get source code from Github Repo: https://github.com/aliciahuang22/SmsControl
+Get source code from Github Repo: https://github.com/aliciahyc/sms-control
 
 ## Building Application
-1. Nevigate to project root directory: SmsControl
+1. Nevigate to project root directory
 2. Type command: dotnet build
 3. The build dirctory is at: SmsControl/bin/Debug/net9.0/SmsControl.dll
 
 ## Running Application
-1. Nevigate to project root directory: SmsControl
+1. Nevigate to project root directory
 2. Type command: dotnet run
 
 ## Testing application on local
@@ -45,5 +45,5 @@ curl -X GET "http://localhost:5000/api/sms/account-rate" \
 -d '{"from": "2025-02-11", "to": "2025-02-11"}'
  
 ## Running Unit Tests
-1. Nevigate to project root directory: SmsControl
+1. Nevigate to project root directory
 2. Type command: dotnet test
