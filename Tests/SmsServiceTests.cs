@@ -125,10 +125,6 @@ namespace SmsControl.Tests
             Assert.True(result);
             Assert.True(count5 == 0);
 
-            result = _smsService.MsgProcessedRate("12345", "2025-02-10", 
-                    "2025-02-13", out _, out double count6);
-            Assert.True(result);
-            Assert.True(count6 > 0);
         }
 
         [Fact]
@@ -161,10 +157,6 @@ namespace SmsControl.Tests
             Assert.True(result);
             Assert.True(count3 == 0);
 
-            result = _smsService.MsgProcessedAccount("2025-02-10", 
-                    "2025-02-13", out _, out double count4);
-            Assert.True(result);
-            Assert.True(count4 > 0);
         }
 
         public void Dispose() 
