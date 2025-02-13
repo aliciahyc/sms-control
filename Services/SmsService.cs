@@ -16,12 +16,12 @@ namespace SmsControl.Services
         private static readonly Lock _sendMessageLock = new();
         private static readonly Lock _resetLimitLock = new();
         private static readonly Lock _removeNumberLock = new();
-        private static readonly string FormatDate = "yyyy-MM-dd HH:mm:ss";
+        private static readonly string[] FormatDate = ["yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss"];
 
         public SmsService(IConfiguration configuration)
         {
-            _maxPerNumber = configuration.GetValue<int>("SmsControl:MaxMessagesPerNumberPerSecond");
-            _maxPerAccount = configuration.GetValue<int>("SmsControl:MaxMessagesPerAccountPerSecond");
+            _maxPerNumber = configuration.GetValue<int>("SmsControl:MaxMessagesPerNumber");
+            _maxPerAccount = configuration.GetValue<int>("SmsControl:MaxMessagesPerAccount");
              _numberUsage = [];
             _numberRecords = [];
         }
@@ -33,6 +33,8 @@ namespace SmsControl.Services
                 message = "Invalid phone number";
                 return false;
             }
+            phoneNumber = phoneNumber.Trim();
+
             lock (_sendMessageLock)
             {
                 _numberUsage.TryGetValue(phoneNumber, out int currentNumberUsage);
@@ -68,7 +70,7 @@ namespace SmsControl.Services
             }
         }
 
-        public bool MsgProcessedRate(string? phoneNumber, String? from, String? to, out string message, out double count)
+        public bool MsgProcessedRate(string phoneNumber, String from, String to, out string message, out double count)
         {
             if (_numberRecords.Count <= 0)
             {
@@ -81,38 +83,110 @@ namespace SmsControl.Services
             if (validPhoneNumber) {
                 if (!phoneNumber.All(char.IsDigit))
                 {
-                    validPhoneNumber = false;
+                    message = "Invalid phone number";
+                    count = 0;
+                    return true;
                 }
+            } else {
+                message = "Invalid phone number";
+                count = 0;
+                return true;
             }
 
-            List<DateTime> records = [];
-            if (validPhoneNumber) {
-                records = _numberRecords.FirstOrDefault(pair => pair.Key == phoneNumber).Value ?? [];   
-            } else 
-            {
-                records = [.. _numberRecords.Values.SelectMany(records => records)]; // records for all the phone number
-            }
+            phoneNumber = phoneNumber.Trim();
+
+            List<DateTime> records = _numberRecords.FirstOrDefault(pair => pair.Key == phoneNumber).Value ?? [];   
+
             if (records.Count <= 0) {
                 count = 0;
                 message = "No message matches the criteria";
                 return true;
             }
 
-            bool validTimeRange = !string.IsNullOrWhiteSpace(from) && !string.IsNullOrWhiteSpace(to);
-
-            if (validTimeRange) 
+            if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
             {
-                if (DateTime.TryParseExact(from, FormatDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fromDate)
+                count = 0;
+                message = "Date cannot be null";
+                return true;
+            } else
+            {
+                from = from.Trim();
+                to = to.Trim();
+            }
+                           
+            if (DateTime.TryParseExact(from, FormatDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fromDate)
                     && DateTime.TryParseExact(to, FormatDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime toDate))
-                {
-                    records = FilterByDateRange(records, fromDate, toDate);
-                }               
+            {
+                if (fromDate > toDate) {
+                    count = 0;
+                    message = "From Date cannot later than To Date";
+                    return true;
+                }
+
+                records = FilterByDateRange(records, fromDate, toDate);
+
+            } else 
+            {
+                count = 0;
+                message = "Invalid date format";
+                return true;
             }
 
             var totalMessages = records.Count;
             if (totalMessages <= 0) {
                 count = 0;
                 message = "No message matches the criteria";
+                return true;
+            }
+
+            var seconds = (records.Max() - records.Min()).TotalSeconds; // max <= to, min >= from
+            if (seconds <= 0 )
+            {
+                seconds = 1;
+            }
+            count = totalMessages / seconds;
+            message = "Processed " + count.ToString() + " messages per second";
+            return true;
+        }
+
+        public bool MsgProcessedAccount(String from, String to, out string message, out double count)
+        {
+            List<DateTime> records = [.. _numberRecords.Values.SelectMany(records => records)]; 
+
+            var totalMessages = records.Count;
+            if (totalMessages <= 0)
+            {
+                count = 0;
+                message = "No message to be processed";
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
+            {
+                count = 0;
+                message = "Date cannot be null";
+                return true;
+            } else
+            {
+                from = from.Trim();
+                to = to.Trim();
+            }
+                           
+            if (DateTime.TryParseExact(from, FormatDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fromDate)
+                    && DateTime.TryParseExact(to, FormatDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime toDate))
+            {
+                if (fromDate > toDate) {
+                    count = 0;
+                    message = "From Date cannot later than To Date";
+                    return true;
+                }
+
+                records = FilterByDateRange(records, fromDate, toDate);
+
+            } else 
+            {
+                count = 0;
+                message = "Invalid date format";
                 return true;
             }
 
